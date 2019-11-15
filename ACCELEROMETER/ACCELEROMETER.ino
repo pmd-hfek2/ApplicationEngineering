@@ -55,15 +55,19 @@ void setup()
   //init (gain, threshold)
   X_th = 183;//182
   X_gain = 0.0303; 
+  X_bias = 6;
   X_max = 0;
   Y_th = 182; //182
   Y_gain = 0.0303;
+  Y_bias = 6;
   Y_max = 0;
   Z_th = 198; //197
   Z_gain = 0.0303;
+  Z_bias = 6;
   Z_max = 0;
 
-  calibrate();
+  auto_calibrate();
+  //manual_calibrate(6,6,6);
   
 
 } //END: setup
@@ -114,13 +118,27 @@ void read_accel()
     Z_max = Z_G;
 }
 
-void calibrate()
+void auto_calibrate()
 {
   read_accel();
   X_bias = X_read*X_gain;
   Y_bias = Y_read*Y_gain;
   Z_bias = Z_read*Z_gain;
   Serial.println(F("*** CALIBRATION X-Y-Z (Bias G) ***"));
+  Serial.print(X_bias);
+  Serial.print(F("G ; "));
+  Serial.print(Y_bias);
+  Serial.print(F("G ; "));
+  Serial.print(Z_bias);
+  Serial.println(F("G"));
+}
+
+void manual_calibrate(int x_bias, int y_bias, int z_bias)
+{
+  X_bias = x_bias;
+  Y_bias = y_bias;
+  Z_bias = z_bias;
+  Serial.println(F("*** AUTO-CALIBRATION X-Y-Z (Bias G) ***"));
   Serial.print(X_bias);
   Serial.print(F("G ; "));
   Serial.print(Y_bias);
