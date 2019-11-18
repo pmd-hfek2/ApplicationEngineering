@@ -52,6 +52,11 @@ void Accelerometer::read_data()
 void Accelerometer::auto_calibrate()
 {
 	read_data();
+  //set threshold to base values + small tolerance
+  X_th = X_read + 3;
+  Y_th = Y_read + 3;
+  Z_th = Z_read + 3;
+  //(DC)bias is initial reading with gain (in G)
 	X_bias = X_read*X_gain;
 	Y_bias = Y_read*Y_gain;
 	Z_bias = Z_read*Z_gain;
