@@ -117,6 +117,46 @@ void Accelerometer::print_max()
 	Serial.println(F("G"));
 }
 
+void Accelerometer::analyse()
+{
+  vector_sum = X_max + Y_max + Z_max;
+  average = vector_sum / 3;
+  float variance = (X_max*X_max + Y_max*Y_max + Z_max*Z_max)/3;
+  std_dev = sqrt(variance);
+  
+  Serial.println(F("***** ACCEL. Analyse       *****"));
+  Serial.print(F("* Vector sum (G): "));
+  Serial.println(vector_sum);
+  Serial.print(F("* Axis average (G): "));
+  Serial.println(average);
+  Serial.print(F("* Standard Deviation: "));
+  Serial.println(std_dev);
+
+  bool one_std_dev;
+  if((X_max*1.05 > average-std_dev) && (X_max*0.95 < average+std_dev))
+  {
+    if((Y_max*1.05 > average-std_dev) && (Y_max*0.95 < average+std_dev))
+    {
+      if((Z_max*1.05 > average-std_dev) && (Z_max*0.95 < average+std_dev))
+      {
+        one_std_dev = true;
+      }
+      else
+        one_std_dev = false;
+    }
+    else
+      one_std_dev = false;
+  }
+  else
+    one_std_dev = false;
+  
+  if(one_std_dev)
+    Serial.println(F("All axes are within 1 standard deviation (5% tolerance)."));
+  else
+    Serial.println(F("Not all axes are within 1 standard deviation."));
+
+}
+
 void Accelerometer::start(bool run)
 {
 	if(run)
