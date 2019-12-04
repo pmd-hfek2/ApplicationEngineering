@@ -16,6 +16,7 @@ Accelerometer::Accelerometer(int x_threshold,int y_threshold, int z_threshold, f
 	X_gain = x_gain;
 	Y_gain = y_gain;
 	Z_gain = z_gain;
+
 }
 
 void Accelerometer::init(uint8_t X, uint8_t Y, uint8_t Z)
@@ -29,6 +30,23 @@ void Accelerometer::init(uint8_t X, uint8_t Y, uint8_t Z)
   pinMode(pinZ,INPUT);
 
   Serial.println(F("Accelerometer.....initialised."));
+}
+
+void Accelerometer::display_init(uint8_t DC, uint8_t CS, uint8_t CLK, uint8_t MOSI, uint8_t RESET)
+{
+  OLED_DC = DC;
+  OLED_CS = CS;
+  OLED_CLK = CLK;
+  OLED_MOSI = MOSI;
+  OLED_RESET = RESET;
+  
+  oled = new SSD1306( OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+  oled->ssd1306_init( SSD1306_SWITCHCAPVCC );
+
+  oled->clear_display();
+  oled->drawbitmap( 2, 16,  PMD_LOGO_GLCD_BMP, LOGO_WIDTH, LOGO_HEIGHT, WHITE );
+  delay(2000);
+  oled->clear_display();
 }
 
 void Accelerometer::read_data()
@@ -157,6 +175,69 @@ void Accelerometer::analyse()
 
 }
 
+void Accelerometer::display_calib()
+{
+  oled->clear_display();
+  oled->drawbitmap( 40, 17,  PMD_LOGO_GLCD_BMP_mini, 48, 48, WHITE );
+  
+  //Display calibration status
+  const char* head = (char*)( ACCEL_DATA[0]);
+  oled->drawstring(30, 1, head, WHITE);
+  delay(2000);
+}
+
+void Accelerometer::display_ready()
+{
+  oled->clear_display();
+  oled->drawbitmap( 40, 17,  PMD_LOGO_GLCD_BMP_mini, 48, 48, WHITE );
+  const char* head = (char*)( ACCEL_DATA[3]);
+  oled->drawstring(40, 1, head, WHITE);  
+}
+
+void Accelerometer::display_data()
+{
+  //X-Y-Z max values
+  char X[4];
+  dtostrf(X_max,2,2,X);
+  const char* data = (char*)(&X[0]);
+  const char Y[4];
+  dtostrf(Y_max,2,2,Y);
+  const char* data1 = (char*)(&Y[0]);
+  const char Z[4];
+  dtostrf(Z_max,2,2,Z);
+  const char* data2 = (char*)(&Z[0]);
+  
+  //SUM, AVG, STD-DEV values
+  const char SUM[4];
+  dtostrf(vector_sum,2,2,SUM);
+  const char* data3 = (char*)(&SUM[0]);
+  const char AVG[4];
+  dtostrf(average,2,2,AVG);
+  const char* data4 = (char*)(&AVG[0]);
+  const char STDEV[4];
+  dtostrf(std_dev,2,2,STDEV);
+  const char* data5 = (char*)(&STDEV[0]);
+
+  //X-Y-Z display
+  oled->clear_display();
+  const char* head = (char*)( ACCEL_DATA[1]);
+  oled->drawstring(1, 1, head, WHITE);
+  
+  oled->drawstring(1,3, data, WHITE);
+  oled->drawstring(8,3, data1, WHITE);
+  oled->drawstring(15,3, data2, WHITE);
+
+  //SUM, AVG, STD-DEV display
+  const char* head2 = (char*)( ACCEL_DATA[2]);
+  oled->drawstring(1, 5, head2, WHITE);
+
+  oled->drawstring(1,6, data3, WHITE);
+  oled->drawstring(8,6, data4, WHITE);
+  oled->drawstring(15,6, data5, WHITE);
+  
+  delay(3000); 
+}
+
 void Accelerometer::start(bool run)
 {
 	if(run)
@@ -173,6 +254,9 @@ void Accelerometer::start(bool run)
 				read_data();
 			}
 			print_max();
+      analyse();
+      display_data();
+      display_ready();
 		}
 		X_max = Y_max = Z_max = 0;
 	}
